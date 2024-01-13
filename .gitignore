@@ -1,0 +1,4 @@
+# custom ignore
+code/MVUGCForest/FeatureImportance
+.vscode/
+.idea/
