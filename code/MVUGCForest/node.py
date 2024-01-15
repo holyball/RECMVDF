@@ -35,26 +35,29 @@ class NodeClassifier(BaseLearner):
             forest_type: str, 森林类型
             forest_params: dict, 森林的参数
         """
-        self.fitted = False      
+        super().__init__(**kwargs)
+          
         self.forest_type: str = forest_type
         self.forest_params = forest_params
         self.name = "layer_{}, view_{}, estimstor_{}, {}".format(
             layer_id, view_id, index, forest_type)
         # print("node random_state: ", self.random_state)
         self.n_fold = kwargs.get("n_fold", 5)
-        self.estimator_class = globals()[forest_type]
+        self.forest = globals()[forest_type]
         self.des = kwargs.get("is_des", False)  # 是否动态集成选择
         self.n_trees = kwargs.get("n_trees", 50)
 
-        self.estimators_: Dict[int, BaseEnsemble] = {i:None for i in range(self.n_fold)}
+        self.estimators_: List = [None for _ in range(self.n_fold)]
         self.n_class = None
         self.neighs_ = [None for _ in range(self.n_fold)]
         self.train_labels = [None for _ in range(self.n_fold)]
         self.n_feature_origin: int                                  # 原始特征的数量
         self.n_sample_origin: int
+        
+        self.cv_train = None
 
         # 日志记录
-        self.logger_path = kwargs.get("logger_path", "./MVUGCForest_info")
+        self.logger_path = kwargs.get("logger_path", "./MVRECDF_info")
         assert os.path.exists(self.logger_path), f"logger_path: {self.logger_path} not exist! "
         self.logger = get_custom_logger("KFoldWrapper", "Node_train_log.txt", self.logger_path)
 
@@ -66,81 +69,102 @@ class NodeClassifier(BaseLearner):
         est_args = self.forest_params.copy()
         if self.random_state:
             est_args["random_state"]=self.random_state
-        return self.estimator_class(**est_args)
+        return self.forest(**est_args)
+    
+    def _get_cv_train(self, x, y, group_id):
+        if group_id is None:
+            skf = StratifiedKFold(n_splits=self.n_fold,
+                shuffle=True, random_state=self.random_state)
+            cv_train = [(t, v) for (t, v) in skf.split(x, y)]
+        else:
+            cv_train = []
+            for k in range(self.n_fold):
+                train_id = np.argwhere(group_id!=k).squeeze()
+                val_id = np.argwhere(group_id==k).squeeze()
+                cv_train.append((train_id, val_id))
+        self.cv_train = cv_train
 
     def fit(self, 
             x, y, sample_weight:arr=None, 
-            n_sample_origin: int = None,
+            n_sample_origin: int=None,
+            group_id: List=None,
             ) -> Tuple[arr, arr]:
-        """
-        
-        Returns
-        -------
-        y_proba_wrapper: ndarray, shape is (n_samples, n_classes)
-            验证集概率
-        opinion_wrapper: ndarray, shape is (n_samples, n_classes+1)
-            结点的opinion
-        evidence_wrapper: ndarray or None, ndarray shape is (#samples, n_classes). 
-            仅当使用基于证据计算不确定性时, 该返回值才是ndarray, 否则返回None
-        """
-        self.logger.info(f"----------------------------------------------------------------------------------------------")
-        skf = StratifiedKFold(n_splits=self.n_fold,
-                              shuffle=True, random_state=self.random_state)
-        cv = [(t, v) for (t, v) in skf.split(x, y)]
 
-        n_sample = len(y)
+        self.logger.info(f"----------------------------------------------------------------------------------------------")
+        n_sample = len(x)
         n_class = len(np.unique(y))
         self.n_class = n_class
+        
+        self._get_cv_train(x, y, group_id)
+    
+        self._fit_estimators(x=x, y=y, sample_weight=sample_weight)
 
-        self._fit_estimators(x=x, y=y, cv=cv, sample_weight=sample_weight)
+        # y_proba = np.empty(shape=(n_sample, n_class))
+        # for k in range(self.n_fold):
+        #     est = self.estimators_[k]
+        #     _, val_id = self.cv_train[k]
+        #     if self.forest_type in ["RandomForestClassifier", "ExtraTreesClassifier"]:
+        #         # 如果是并行树
+        #         val_proba = predict_proba_mat_rf(est, x[val_id])
 
-        y_proba = np.empty(shape=(n_sample, n_class))
-        for k in range(self.n_fold):
-            est = self.estimators_[k]
-            train_id, val_id = cv[k]
+        #     y_proba[val_id] = val_proba
 
-            if self.forest_type in ["RandomForestClassifier", "ExtraTreesClassifier"]:
-                # 如果是并行树
-                val_proba = predict_proba_mat_rf(est, x[val_id])
+        #     self.logger.info(
+        #         "{}, n_fold_{}, Accuracy={:.4f}, f1_score={:.4f}, auroc={:.4f}, aupr={:.4f}".format(
+        #         self.name, k, accuracy(y[val_id], val_proba), f1_macro(y[val_id], val_proba), 
+        #         auroc(y[val_id], val_proba), aupr(y[val_id], val_proba)))
 
-            y_proba[val_id] = val_proba
+        # self.logger.info(
+        #     "{}, {},Accuracy={:.4f}, f1_score={:.4f}, auroc={:.4f}, aupr={:.4f}".format(
+        #         self.name, "wrapper", accuracy(y, y_proba), f1_macro(y,y_proba),
+        #         auroc(y, y_proba), aupr(y, y_proba) ) )
+        # self.logger.info("----------")
 
-            self.logger.info(
-                "{}, n_fold_{}, Accuracy={:.4f}, f1_score={:.4f}, auroc={:.4f}, aupr={:.4f}".format(
-                self.name, k, accuracy(y[val_id], val_proba), f1_macro(y[val_id], val_proba), 
-                auroc(y[val_id], val_proba), aupr(y[val_id], val_proba)))
+        self._is_fitted = True  # 是否拟合的标志
+        # return y_proba
 
-        self.logger.info(
-            "{}, {},Accuracy={:.4f}, f1_score={:.4f}, auroc={:.4f}, aupr={:.4f}".format(
-                self.name, "wrapper", accuracy(y, y_proba), f1_macro(y,y_proba),
-                auroc(y, y_proba), aupr(y, y_proba) ) )
-        self.logger.info("----------")
-
-        self.cv = [(t[t<n_sample_origin], v[v<n_sample_origin]) for t, v in cv]
-        self.X_train = x[:n_sample_origin]
-        self.y_train = y[:n_sample_origin]
-        self.fitted = True  # 是否拟合的标志
-        return y_proba
-
-    def predict_proba(self, x_test) -> arr:
+    def evaluate(self, x, y, eval_func, return_proba=False):
+        assert self._is_fitted, "This node not fitted"
+        y_proba = np.empty((x.shape[0], self.n_class))
+        
+        for i, (_, val_idx) in enumerate(self.cv_train):
+            y_proba[val_idx] = self.estimators_[i].predict_proba(x[val_idx])
+        
+        if return_proba:
+            return y_proba
+        return eval_func(y, y_proba)
+    
+    def generate_boosting_features(self, x, group_id=None):
+        assert self._is_fitted, "This node not fitted"
+        if group_id is None:
+            # 训练阶段的增强特征
+            return self.evaluate(x, None, None, return_proba=True)
+        else:
+            # 预测阶段的增强特征
+            boost_features = []
+            for forest in self.estimators_:
+                boost_features.append(forest.predict_proba(x))
+            return np.mean(boost_features, axis=0)
+            
+    def predict_proba(self, x, y=None) -> arr:
         proba = 0
         for est in self.estimators_:
-            proba += est.predict_proba(x_test)
+            proba += est.predict_proba(x)
         proba /= len(self.estimators_)
         return proba
     
-    def _fit_estimators(self, x, y, cv, sample_weight=None):
+    def _fit_estimators(self, x, y, sample_weight=None):
         """拟合基学习器(森林)"""
         if sample_weight is None:
             sample_weight = np.ones(len(y))
         for k in range(self.n_fold):
             est = self._init_estimator()
-            train_id, val_id = cv[k]
+            train_id, _ = self.cv_train[k]
             # print(x[train_id])
             est.fit(x[train_id], y[train_id], sample_weight=sample_weight[train_id])
             self.estimators_[k] = est
 
-    def _fit_neighbors(self, x, y, cv, r=None):
+    def _fit_neighbors(self, x, y, r=None):
         """基于预测结果训练为每一个森林训练Nearest Neighbors"""
         
         if r is None:
@@ -149,7 +173,7 @@ class NodeClassifier(BaseLearner):
             else:
                 n_tree = len(self.estimators_[0].estimators_)
             r = np.sqrt(self.n_trees / 5)
-        for i, (train_idx, val_idx) in enumerate(cv):
+        for i, (val_idx) in enumerate(self.cv_train):
             prediction_mat = self._apply_tree_prediction(x[val_idx], i)
 
             # 如果是多分类, 对prediction_mat做onehot编码
@@ -178,10 +202,6 @@ class NodeClassifier(BaseLearner):
         """
         proba_mat = get_trees_predict_proba(self.estimators_[forest_id], x_for_predict)
         return proba_mat
-    
-    def _normalize_log_density(self, x, y):
-        return ReLU(x-y)/np.abs(x)
-        # return ReLU(x-y)/100
 
 
 
