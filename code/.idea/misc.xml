@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.9 (base)" project-jdk-type="Python SDK" />
+  <component name="UnattendedHostPersistenceState">
+    <option name="openedFilesInfos">
+      <list>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="0" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/README.md" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="2907" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/train_MVugcforst.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="20069" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/MVUGCForest/MVUGCForest.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="8715" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/MVUGCForest/dataloader.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="700" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/train_MVugcforst_cv.py" />
+        </OpenedFileInfo>
+      </list>
+    </option>
+  </component>
+</project>

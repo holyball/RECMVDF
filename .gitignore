@@ -1,4 +1,7 @@
 # custom ignore
-code/MVUGCForest/FeatureImportance
-.vscode/
-.idea/
+MVRECDF_info
+code/__pycache__
+code/vscode/
+code/idea/
+code/MVRECDF/FeatureImportance
+code/MVRECDF/__pycache__

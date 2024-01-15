@@ -1,0 +1,8 @@
+{
+    "files.exclude": {
+        // "MVUGCForest_info": true,
+        // "MVUGCForest_info_1": true,
+        "catboost_info": true,
+        "target_statistic_encoding": true,
+    }
+}

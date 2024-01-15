@@ -7,8 +7,8 @@ LastEditTime: 2023-06-13 22:54:20
 LastEditors: tanqiong
 '''
 # 完整数据集上(dataset_0403)的实验
-from MVUGCForest.MVUGCForest import MVUGCForest
-from MVUGCForest.evaluation import accuracy,f1_binary,f1_macro,f1_micro, mse_loss
+from MVRECDF.MVUGCForest import MVUGCForest
+from MVRECDF.evaluation import accuracy,f1_binary,f1_macro,f1_micro, mse_loss
 from sklearn.model_selection import train_test_split,StratifiedKFold,RepeatedKFold,RepeatedStratifiedKFold
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier

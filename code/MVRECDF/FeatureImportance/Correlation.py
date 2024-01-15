@@ -21,7 +21,7 @@ from lightgbm import LGBMClassifier
 from xgboost import XGBClassifier
 # from MVUGCForest import MVUGCForest
 from FeatureImportance.mip import mip_score
-from MVUGCForest.dataloader import DataLoader
+from MVRECDF.dataloader import DataLoader
 np.set_printoptions(precision=4)
 
 def generate_corr_matrix(feature_matrix, save_path, col_name):

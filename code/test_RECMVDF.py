@@ -5,8 +5,8 @@ Date: 2023-05-14 11:03:42
 LastEditTime: 2023-10-09 18:24:13
 LastEditors: tanqiong
 '''
-from MVUGCForest.MVRECDF_kernel import MVRECForestClassifier
-from MVUGCForest.evaluation import accuracy,f1_binary,f1_macro,f1_micro, mse_loss, aupr, auroc
+from MVRECDF.MVRECDF_kernel import MVRECForestClassifier
+from MVRECDF.evaluation import accuracy,f1_binary,f1_macro,f1_micro, mse_loss, aupr, auroc
 from sklearn.model_selection import train_test_split,StratifiedKFold,RepeatedKFold,RepeatedStratifiedKFold
 import numpy as np
 import pandas as pd
