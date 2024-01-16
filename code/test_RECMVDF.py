@@ -30,7 +30,9 @@ from util import reject, save_opinions, get_logger, uncertainty_acc_curve, get_s
 # sys.path.append(os.path.dirname(__file__))
 
 if __name__=="__main__":
-    from sklearn.datasets import load_digits, load_breast_cancer
+    # # 导入sklearn中的小型UCI数据集
+    # from sklearn.datasets import load_digits, load_breast_cancer
+    
     # # 完整地导入multiview数据集, 速度慢
     # features_dict, origin_labels = load_multiview_data('all')
     # features_dict = {i:features.values for i, features in enumerate(features_dict.values())}
@@ -51,6 +53,9 @@ if __name__=="__main__":
     x_train_list = [x for x in x_train.values()]
     x_test_list = [x for x in x_test.values()]
 
+    x_train_list = x_train_list[2:4]
+    x_test_list = x_test_list[2:4]
+
     # # 删除之前的日志记录
     folder_path = "MVRECDF_info"  # 指定要删除的文件夹路径
     try:
@@ -60,7 +65,7 @@ if __name__=="__main__":
         print(f"文件夹删除失败: {e}")
     
     model=MVRECForestClassifier(
-        n_view=4, n_tree=10, n_fold=5,
+        n_view=2, n_tree=10, n_fold=5,
         is_stacking_for_boost_features=False,
         is_resample=False,
         cluster_samples_layer=False,

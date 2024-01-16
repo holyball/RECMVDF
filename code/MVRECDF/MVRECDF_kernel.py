@@ -11,9 +11,9 @@ from .logger import get_logger, get_opinion_logger, get_custom_logger, mkdir
 from .veiw import View
 from .multiview_layer import Layer
 from .util import df_to_csv, get_stage_matrix, get_scores, metrics_name
-from .dataloader import DataLoader
 from .evaluation import accuracy, f1_macro, mse_loss, aupr, auroc
 from .base import BaseLearner
+from .data_augmentation import resample_hard, resample_outlier
 
 from copy import deepcopy
 from typing import List, Tuple, Any, Dict, Union
@@ -172,7 +172,9 @@ class MVRECForestClassifier(BaseLearner):
         from sklearn.model_selection import StratifiedKFold
         skf = StratifiedKFold(
             n_splits=self.n_fold, shuffle=True, random_state=random_state)
-        gen = skf.split(x_list[np.random.randint(0, self.n_view)], y)
+        if random_state is not None:
+            split_view_id = np.random.randint(0, self.n_view)
+        gen = skf.split(x_list[split_view_id], y)
         val_idx_fold = np.empty(y.shape[0])
         for fold_idx, (_, val_idx) in enumerate(gen):
             val_idx_fold[val_idx] = fold_idx
