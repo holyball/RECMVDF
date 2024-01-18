@@ -78,10 +78,12 @@ class NodeClassifier(BaseLearner):
             cv_train = [(t, v) for (t, v) in skf.split(x, y)]
         else:
             cv_train = []
+            # print(f"group_id len: {len(group_id)}")
             for k in range(self.n_fold):
-                train_id = np.argwhere(group_id!=k).squeeze()
+                train_id = np.argwhere((group_id!=k) | (group_id==-1)).squeeze()
                 val_id = np.argwhere(group_id==k).squeeze()
                 cv_train.append((train_id, val_id))
+                # print(f"cv_train_{k}: {len(train_id)+len(val_id)}")
         self.cv_train = cv_train
 
     def fit(self, 
@@ -99,6 +101,19 @@ class NodeClassifier(BaseLearner):
     
         self._fit_estimators(x=x, y=y, sample_weight=sample_weight)
 
+        # try:
+        #     self._fit_estimators(x=x, y=y, sample_weight=sample_weight)
+        # except Exception as e:
+        #     print(e)
+        #     # x_hasNaN = np.isnan(x).any()
+        #     # print('X包含 NaN: ', x_hasNaN)
+        #     # y_hasNaN = np.isnan(y).any()
+        #     # print("y包含 NaN: ", y_hasNaN)
+        #     print(f"x.shape: {x.shape}, y.shape:{y.shape}")
+            
+        #     pd.DataFrame(x).to_csv(f"x_new_{self.name}.csv")
+        #     pd.DataFrame(y).to_csv(f"y_new_{self.name}.csv")
+        #     exit()
         # y_proba = np.empty(shape=(n_sample, n_class))
         # for k in range(self.n_fold):
         #     est = self.estimators_[k]
@@ -134,17 +149,36 @@ class NodeClassifier(BaseLearner):
             return y_proba
         return eval_func(y, y_proba)
     
-    def generate_boosting_features(self, x, group_id=None):
-        assert self._is_fitted, "This node not fitted"
-        if group_id is None:
-            # 训练阶段的增强特征
-            return self.evaluate(x, None, None, return_proba=True)
-        else:
-            # 预测阶段的增强特征
-            boost_features = []
+    def generate_boosting_features(self, x, group_id):
+        x_train = x[ np.argwhere(group_id!=-1).squeeze()]
+        x_predict = x[ np.argwhere( (group_id==-1) ).squeeze() ] 
+        
+        if len(x_train) > 0:
+            boost_feature_train = self.evaluate(x_train, None, None, return_proba=True)
+        if len(x_predict) > 0:
+            boost_feature_list = []
             for forest in self.estimators_:
-                boost_features.append(forest.predict_proba(x))
-            return np.mean(boost_features, axis=0)
+                boost_feature_list.append(forest.predict_proba(x_predict))
+                boost_feature_predict = np.mean(boost_feature_list, axis=0)
+        
+        if len(x_train) == 0:
+            return boost_feature_predict
+        elif len(x_predict) == 0:
+            return boost_feature_train
+        else:
+            return np.vstack([boost_feature_train, boost_feature_predict])
+    
+    # def generate_boosting_features(self, x, group_id=None):
+    #     assert self._is_fitted, "This node not fitted"
+    #     if group_id is None:
+    #         # 训练阶段的增强特征
+    #         return self.evaluate(x, None, None, return_proba=True)
+    #     else:
+    #         # 预测阶段的增强特征
+    #         boost_features = []
+    #         for forest in self.estimators_:
+    #             boost_features.append(forest.predict_proba(x))
+    #         return np.mean(boost_features, axis=0)
             
     def predict_proba(self, x, y=None) -> arr:
         proba = 0
@@ -160,8 +194,17 @@ class NodeClassifier(BaseLearner):
         for k in range(self.n_fold):
             est = self._init_estimator()
             train_id, _ = self.cv_train[k]
-            # print(x[train_id])
             est.fit(x[train_id], y[train_id], sample_weight=sample_weight[train_id])
+            # try:
+            #     est.fit(x[train_id], y[train_id], sample_weight=sample_weight[train_id])
+            # except ValueError:
+            #     print(np.shape(x[train_id]), np.shape(y[train_id]))
+            #     pd.DataFrame(x[train_id]).to_csv()
+            # except TypeError:
+            #     # print(train_id)
+            #     # print(np.shape(x[train_id]), np.shape(y[train_id]))
+            #     print(np.shape(y))
+            #     exit()
             self.estimators_[k] = est
 
     def _fit_neighbors(self, x, y, r=None):

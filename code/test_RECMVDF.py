@@ -23,8 +23,8 @@ import os
 import shutil
 from preprocessing_data import load_data_to_df, load_combine_data_to_df, \
                                load_multiview_data, split_multiview_data, \
-                               load_simulation_multiview_data, make_noise_data
-from util import reject, save_opinions, get_logger, uncertainty_acc_curve, get_stage_matrix
+                               load_simulation_multiview_data
+from util import get_logger, get_stage_matrix
 
 # import sys
 # sys.path.append(os.path.dirname(__file__))
@@ -69,6 +69,9 @@ if __name__=="__main__":
         is_stacking_for_boost_features=False,
         is_resample=False,
         cluster_samples_layer=False,
+        early_stop_rounds = 2,
+        span=1,
+        eval_not_easy=True,
     )
     model.fit(x_train_list, y_train, evaluate_set="all")
 

@@ -1,17 +1,13 @@
 from concurrent.futures import ProcessPoolExecutor
 
-def fit_view(view, x, y):
-    view.fit(x, y)
-    return view
+def fit_module(module, x, y, group_id):
+    module.fit(x, y, group_id=group_id)
+    return module
 
-def fit_node(node, x, y, group_id):
-    node.fit(x, y, group_id=group_id)
-    return node
+def evaluate_proba(module, x, y, eval_func):
+    return module.evaluate(x, y, eval_func, return_proba=True)
 
-def evaluate_proba(view, x, y, eval_func):
-    return view.evaluate(x, y, eval_func, return_proba=True)
-
-def generate_boosting_features_func(moudule, x, group_id):
+def generate_boosting_features_func(module, x, group_id):
     """顶级函数, 用于多进程序列化
 
     Args:
@@ -22,8 +18,8 @@ def generate_boosting_features_func(moudule, x, group_id):
     Returns:
         _type_: _description_
     """
-    return moudule.generate_boosting_features(x, group_id)
+    return module.generate_boosting_features(x, group_id)
 
-def predict_node(node, x, y):
-    y_proba_node = node.predict_proba(x, y)
+def predict_module(module, x, y):
+    y_proba_node = module.predict_proba(x, y)
     return y_proba_node

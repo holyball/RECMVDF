@@ -7,6 +7,7 @@ from .logger import get_logger, get_opinion_logger, get_custom_logger
 from .node import NodeClassifier
 from .base import BaseLearner
 from .util_processpoolexecutor import *
+# from .data_augmentation import get_confidence, get_prediction, assign_tags
 from copy import deepcopy
 from typing import List, Tuple, Any
 # 为了保证可以完整打印opinion
@@ -73,7 +74,7 @@ class View(BaseLearner):
         """
 
         with ProcessPoolExecutor() as executor:
-            futures = [executor.submit(fit_node, node, x, y, group_id) for node in self._nodes]
+            futures = [executor.submit(fit_module, node, x, y, group_id) for node in self._nodes]
             fitted_nodes = [future.result() for future in futures]
         self._nodes = fitted_nodes
         self._is_fitted = True
@@ -132,16 +133,17 @@ class View(BaseLearner):
             x (_type_): _description_
             y (_type_, optional): _description_. Defaults to None.
         """
-
-        with ProcessPoolExecutor() as executor:
-            futures = [executor.submit(predict_node, node, x, y) for node in self._nodes]
-            y_proba_node_mat = [future.result() for future in futures]
-        
+        y_proba_node_mat = self._predict_proba(x, y)
         # ave
         y_proba_view = np.mean(y_proba_node_mat, axis=0)
         return y_proba_view
         
-
+    def _predict_proba(self, x, y=None):
+        with ProcessPoolExecutor() as executor:
+            futures = [executor.submit(predict_module, node, x, y) for node in self._nodes]
+            y_proba_node_mat = [future.result() for future in futures]
+        return y_proba_node_mat
+    
 # class View(object):
 #     def __init__(self) -> None:
 #         self.layers: List[Layer] = []

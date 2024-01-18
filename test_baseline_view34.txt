@@ -1,8 +1,8 @@
 model: RandomForestClassifier
-test acc: 0.7142857142857143	test f1: 0.6994434137291281
+test acc: 0.6984126984126984	test f1: 0.685
 
 model: ExtraTreesClassifier
-test acc: 0.6746031746031746	test f1: 0.6612681135663235
+test acc: 0.6746031746031746	test f1: 0.6589423648247177
 
 model: XGBClassifier
 test acc: 0.6587301587301587	test f1: 0.6489795918367347
@@ -20,5 +20,32 @@ model: GradientBoostingClassifier
 test acc: 0.6984126984126984	test f1: 0.685
 
 model: AdaBoostClassifier
+test acc: 0.6666666666666666	test f1: 0.6518421052631579
+
+model: RandomForestClassifier
+test acc: 0.7222222222222222	test f1: 0.7066844030595276
+
+model: ExtraTreesClassifier
+test acc: 0.6746031746031746	test f1: 0.6589423648247177
+
+model: XGBClassifier
+test acc: 0.6587301587301587	test f1: 0.6489795918367347
+
+model: CatBoostClassifier
 test acc: 0.6984126984126984	test f1: 0.6827458256029685
+
+model: LGBMClassifier
+test acc: 0.7063492063492064	test f1: 0.6962272756890597
+
+model: CascadeForestClassifier
+test acc: 0.7301587301587301	test f1: 0.72
+
+model: GradientBoostingClassifier
+test acc: 0.7063492063492064	test f1: 0.6943151268769261
+
+model: AdaBoostClassifier
+test acc: 0.6984126984126984	test f1: 0.6827458256029685
+
+model: RandomForestClassifier
+test acc: 0.6904761904761905	test f1: 0.6777916202216248
 

@@ -1,4 +1,10 @@
 # custom ignore
+*.txt
+*.csv
+*.ipynb
+.ipynb_checkpoints
+.vscode
+catboost_info/
 MVRECDF_info
 code/__pycache__
 code/vscode/

@@ -1247,19 +1247,20 @@ class MVUGCForest(object):
 
     def __record_features_corr(self, features, y, filename, col_name):
         """记录高阶特征之间的相关性"""
-        if features.shape[1] == 0:
-            return
-        import sys
-        sys.path.append("/home/tq/uncertainty_estimation_0403/MVUGCForest/FeatureImportance")
-        from Correlation import generate_corr_pic
-        dir = os.path.join(self.logger_path, "high_order_correlation")
-        if not os.path.exists(dir):
-            os.mkdir(dir)
+        pass
+        # if features.shape[1] == 0:
+        #     return
+        # import sys
+        # sys.path.append("/home/tq/uncertainty_estimation_0403/MVUGCForest/FeatureImportance")
+        # from Correlation import generate_corr_pic
+        # dir = os.path.join(self.logger_path, "high_order_correlation")
+        # if not os.path.exists(dir):
+        #     os.mkdir(dir)
         
-        filename = os.path.join(dir, filename)
+        # filename = os.path.join(dir, filename)
 
-        generate_corr_pic( np.hstack( [ features, y.reshape(-1,1) ] ),
-                                     filename, col_name=col_name)
+        # generate_corr_pic( np.hstack( [ features, y.reshape(-1,1) ] ),
+        #                              filename, col_name=col_name)
         
     def record_inter_features_corr(self, depth, features, y, stage:str ):
         filename = f"correlation_inter_label_{stage}_layer_{depth}.png"
